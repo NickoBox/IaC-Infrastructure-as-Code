@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# Definimos una descripcion para el Stack o Pila
+Description: Creacion de BucketS3 usando CloudFormation
+
+# Definimos parametros
+Parameters:
+
+  BucketName:
+
+    Type: String
+
+    Description: El nombre de mi Bucket S3
+
+# Definimos metadatos
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParametersGroup:
+
+    - Label:
+
+        default: Bucket S3
+
+      Parameters:
+
+      - BucketName
+
+    ParametersLabel:
+
+      BucketName:
+
+        default: 'Nombre de mi Bucket: '
+
+# Definimos los recursos a desplegar
+Resources:
+
+  S3Bucket:
+
+    Type: AWS::S3::Bucket
+
+    Properties: 
+
+      BucketName: !Ref BucketName
+
+      PublicAccessBlockConfiguration:
+
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      
+      VersioningConfiguration:
+
+        Status: Enabled
