@@ -1,0 +1,23 @@
+Lo primero para trabajar con ansible en AWS es configurar
+AWSCLI para ello tenemos varias opciones:
+
+Usar el comando:
+aws configure
+
+O cargar estas configuraciones directamente como
+variables de entorno.
+
+Para verificar que aws fue configurado satisfactoriamente
+podemos probar con un comando simple como:
+aws s3 ls
+
+Para listar los Buckets que tenemos
+
+Cuando AWSCLI ya este configurado podemos ejecutar nuestro Playbook
+El comando es:
+ansible-playbook playbook-ec2.yml -vvv
+
+Si aparece algun error como que Python no esta instalado
+posiblemente sea que Ansible no encuentra la ruta a Python3
+Podemos solucionar ese error con el siguiente comando.
+ansible-playbook playbook-ec2.yml -e 'ansible_python_interpreter=/usr/bin/python3' -vvv
