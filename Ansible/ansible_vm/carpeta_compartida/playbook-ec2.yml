@@ -1,0 +1,65 @@
+- hosts: localhost
+  tasks:
+  # CREACION DE PAR DE LLAVES
+  - name: Creo un par de llaves
+    ec2_key:
+      name: mi-llave-007
+    register: key
+  # VALIDACION DE LA LLAVE
+  - name: Se pudo crear la nueva llave?
+    debug:
+        msg: "{{ key.msg }}"
+  # GUARDO LA LLAVE
+  - name: Guardar llave privada
+    copy: dest="../certificado.pem" mode="0700" content="{{ key.key.private_key }}"
+    ignore_errors: yes
+  # BUSCAR LA VPC POR DEFECTO
+  - name: Buscar VPC por defecto
+    ec2_vpc_net_info:
+      filters:
+        is-default: "true"
+    register: vpc
+  # BUSCAR LA SUBNET
+  - name: Buscar Subnet por defecto
+    ec2_vpc_subnet_info:
+      filters:
+        default-for-az: "true"
+    register: subnet
+  # CREAR GRUPO DE SEGURIDAD
+  - name: Crear grupo de seguridad con HTTPS, HTTP y SSH
+    ec2_group:
+      name: security_group_nicko
+      vpc_id: "{{ vpc.vpcs[0].vpc_id }}"
+      description: Grupo de seguridad con las reglas
+      region: us-east-1
+      rules:
+        - proto: tcp
+          ports:
+          - 443
+          - 80
+          - 22
+          - 8080
+          cidr_ip: 0.0.0.0/0
+          rule_desc: acepto todo el trafico de los puertos 443, 80, 22 y 8080
+  # CREACION DEL SERVIDOR
+  - name: Creamos nuestro servidor
+    ec2:
+      region: us-east-1
+      instance_type: t2.micro
+      image: ami-0c2b8ca1dad447f8a
+      instance_tags:
+        Name: instancia_nicko
+      wait: yes
+      wait_timeout: 500
+      volumes:
+        - device_name: /dev/xvda
+          volume_type: gp2
+          volume_size: 8
+      vpc_subnet_id: "{{ subnet.subnets[0].subnet_id }}"
+      assign_public_ip: yes
+      key_name: "{{ key.key.name }}"
+    register: info
+  # MOSTRAR DNS PUBLICO DE LA INSTANCIA
+  - name: DNS Público de nuestro servidor
+    debug:
+      msg: "La IP publica es {{ info.instances[0].public_ip }} y su DNS es {{ info.instances[0].public_dns_name }}"
